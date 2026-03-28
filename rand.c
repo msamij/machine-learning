@@ -23,11 +23,14 @@ void prng_seed(u64 init_state, u64 initseq);
 u32 prng_rand_r(prng_state *rng);
 u32 prng_rand(void);
 
+f32 prng_randf_r(prng_state *rng);
+f32 prng_randf(void);
+
 int main(void)
 {
 	for (u32 i = 0; i < 10; i++)
 	{
-		printf("%u\n", prng_rand());
+		printf("%f\n", prng_randf());
 	}
 	return 0;
 }
@@ -62,4 +65,14 @@ u32 prng_rand_r(prng_state *rng)
 u32 prng_rand(void)
 {
 	return prng_rand_r(&s_prng_state);
+}
+
+f32 prng_randf_r(prng_state *rng)
+{
+	return (f32)prng_rand_r(rng) / (f32)UINT32_MAX;
+}
+
+f32 prng_randf(void)
+{
+	return prng_randf_r(&s_prng_state);
 }
