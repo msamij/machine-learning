@@ -10,7 +10,6 @@ typedef float f32;
 
 // Based on the pcg random number generator https://pcg-random.org/
 // Licensed under Apache License 2.0 (NO WARRANTY, etc. see website)
-
 typedef struct
 {
 	u64 state;
@@ -28,6 +27,7 @@ f32 prng_randf(void);
 
 int main(void)
 {
+
 	for (u32 i = 0; i < 10; i++)
 	{
 		printf("%f\n", prng_randf());
