@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <math.h>
 
+#define PI 3.14159265358979
+
 typedef uint32_t u32;
 typedef uint64_t u64;
 
@@ -14,6 +16,8 @@ typedef struct
 {
 	u64 state;
 	u64 inc;
+
+	f32 prev_norm;
 } prng_state;
 
 void prng_seed_r(prng_state *rng, u64 initstate, u64 initseq);
@@ -25,12 +29,15 @@ u32 prng_rand(void);
 f32 prng_randf_r(prng_state *rng);
 f32 prng_randf(void);
 
+f32 prng_rand_norm_r(prng_state *rng);
+f32 prng_rand_norm(void);
+
 int main(void)
 {
 
 	for (u32 i = 0; i < 10; i++)
 	{
-		printf("%f\n", prng_randf());
+		printf("%f\n", prng_rand_norm());
 	}
 	return 0;
 }
@@ -75,4 +82,36 @@ f32 prng_randf_r(prng_state *rng)
 f32 prng_randf(void)
 {
 	return prng_randf_r(&s_prng_state);
+}
+
+f32 prng_rand_norm_r(prng_state *rng)
+{
+	if (!isnan(rng->prev_norm))
+	{
+		f32 out = rng->prev_norm;
+		rng->prev_norm = NAN;
+		return out;
+	}
+
+	f32 u1 = 0.0f;
+	do
+	{
+		u1 = prng_randf_r(rng);
+
+	} while (u1 == 0.0f);
+
+	f32 u2 = prng_randf_r(rng);
+
+	f32 mag = sqrtf(-2.0f * logf(u1));
+
+	f32 z0 = mag * cosf(2.0 * PI * u2);
+	f32 z1 = mag * sinf(2.0 * PI * u2);
+
+	rng->prev_norm = z1;
+	return z0;
+}
+
+f32 prng_rand_norm(void)
+{
+	return prng_rand_norm_r(&s_prng_state);
 }
