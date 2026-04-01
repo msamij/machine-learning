@@ -2,16 +2,19 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
+#include <unistd.h>
+#include <sys/random.h>
 
 #define PI 3.14159265358979
+
+// Based on the pcg random number generator https://pcg-random.org/
+// Licensed under Apache License 2.0 (NO WARRANTY, etc. see website)
 
 typedef uint32_t u32;
 typedef uint64_t u64;
 
 typedef float f32;
 
-// Based on the pcg random number generator https://pcg-random.org/
-// Licensed under Apache License 2.0 (NO WARRANTY, etc. see website)
 typedef struct
 {
 	u64 state;
@@ -32,12 +35,19 @@ f32 prng_randf(void);
 f32 prng_rand_norm_r(prng_state *rng);
 f32 prng_rand_norm(void);
 
+void plat_get_entropy(void *data, u32 size);
+
 int main(void)
 {
+	u64 seeds[2] = {2};
+	getentropy(seeds, sizeof(seeds));
+
+	prng_state rng = {};
+	prng_seed_r(&rng, seeds[0], seeds[1]);
 
 	for (u32 i = 0; i < 10; i++)
 	{
-		printf("%f\n", prng_rand_norm());
+		printf("%f\n", prng_rand_norm_r(&rng));
 	}
 	return 0;
 }
@@ -115,3 +125,12 @@ f32 prng_rand_norm(void)
 {
 	return prng_rand_norm_r(&s_prng_state);
 }
+
+#if defined(_WIN32)
+#include "Windows.h"
+#include "bcrypt.h"
+void plat_get_entropy(void *data, u32 size)
+{
+	BCryptGenRandom(NULL, data, size, BCRYPT_USE_SYSTEM_PREFERRED_RNG);
+}
+#endif
